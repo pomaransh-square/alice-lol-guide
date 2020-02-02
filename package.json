@@ -1,0 +1,49 @@
+{
+  "name": "lol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "npm run build && node build/index.js",
+    "lint": "eslint --fix ./**/*.ts",
+    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pomaransh-square/alice-lol-guide.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pomaransh-square/alice-lol-guide/issues"
+  },
+  "homepage": "https://github.com/pomaransh-square/alice-lol-guide#readme",
+  "dependencies": {
+    "@types/express": "^4.17.2",
+    "@types/node": "^13.7.0",
+    "@types/osmosis": "^1.1.1",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "alice-renderer": "^0.8.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.0",
+    "express": "^4.17.1",
+    "husky": "^4.2.1",
+    "micro": "^9.3.4",
+    "nodemon": "^2.0.2",
+    "osmosis": "^1.1.10",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5",
+    "yandex-dialogs-sdk": "^2.3.0"
+  },
+  "devDependencies": {}
+}
