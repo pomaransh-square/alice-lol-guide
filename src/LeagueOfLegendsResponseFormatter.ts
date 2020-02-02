@@ -5,7 +5,7 @@ import { toCapital } from './helpers';
 
 export class LeagueOfLegendsResponseFormatter {
     static get buttons() {
-        return ['Помощь', 'Руны Акали', 'Скиллы Азир', 'Роли Пайк'];
+        return ['Помощь', 'Руны Акали', 'Скиллы Азир', 'Роли Пайк', 'Зои', 'Предметы Пантеон'];
     }
 
     static getFormatterFlags = (): Record<Flags, boolean> =>

@@ -35,6 +35,18 @@ Promise.all<LeagueOfLegendsBuildParser>([
             const formatter = ruFormatter;
             const lol = ruLol;
 
+            let done = false;
+            setTimeout(() => {
+                if (done) return;
+                done = true;
+
+                res.end(JSON.stringify({
+                    version,
+                    session,
+                    response: formatter.error(),
+                }));
+            }, 2000);
+
             if (!request.command) {
                 return res.end(JSON.stringify({
                     version,
@@ -62,21 +74,6 @@ Promise.all<LeagueOfLegendsBuildParser>([
                     response: formatter.help(),
                 }));
             }
-
-            let done = false;
-
-            setTimeout(() => {
-                if (done) return;
-                done = true;
-
-                res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.error(),
-                }));
-            }, 2000);
-
-            if (done) return;
 
             // const sortedSearch = ruNames
             //     .map((name: string) => findMoreMatchesResult(command, name))
