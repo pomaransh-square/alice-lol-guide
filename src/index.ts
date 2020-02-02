@@ -83,8 +83,6 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 .filter(e => e.weight > -1)
                 .sort((a, b) => a.weight - b.weight);
 
-            console.log(sortedSearch);
-
             const found = sortedSearch[0];
 
             const champName = found && found.name;
