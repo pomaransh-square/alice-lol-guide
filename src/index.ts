@@ -1,26 +1,26 @@
 import express from 'express';
 
 import { LeagueOfLegendsBuildParser } from './LeagueOfLegendsBuildParser';
-import { LeagueOfLegendsResponseFormatter } from "./LeagueOfLegendsResponseFormatter";
-import { Flags } from "./typings";
+import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseFormatter';
+import { Flags } from './typings';
 
 const ruFormatter = new LeagueOfLegendsResponseFormatter('ru');
 // const enFormatter = new LeagueOfLegendsResponseFormatter('en');
 
 Promise.all<LeagueOfLegendsBuildParser>([
-    new Promise(resolve => {
+    new Promise((resolve) => {
         const ruLol = new LeagueOfLegendsBuildParser(undefined, 'ru');
         ruLol.on('namesLoaded', () => {
             resolve(ruLol);
         });
     }),
-    new Promise(resolve => {
-        const enLol = new LeagueOfLegendsBuildParser(undefined, 'en');
-        enLol.on('namesLoaded', () => {
-            resolve(enLol);
-        });
-    })
-]).then(([ruLol, enLol]) => {
+    // new Promise((resolve) => {
+    //     const enLol = new LeagueOfLegendsBuildParser(undefined, 'en');
+    //     enLol.on('namesLoaded', () => {
+    //         resolve(enLol);
+    //     });
+    // }),
+]).then(([ruLol]) => {
     const app = express();
     app
         .use(express.json())
@@ -36,7 +36,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 return res.end(JSON.stringify({
                     version,
                     session,
-                    response: formatter.hello()
+                    response: formatter.hello(),
                 }));
             }
 
@@ -48,7 +48,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 return res.end(JSON.stringify({
                     version,
                     session,
-                    response: formatter.end()
+                    response: formatter.end(),
                 }));
             }
 
@@ -56,7 +56,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 return res.end(JSON.stringify({
                     version,
                     session,
-                    response: formatter.help()
+                    response: formatter.help(),
                 }));
             }
 
@@ -69,20 +69,20 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 res.end(JSON.stringify({
                     version,
                     session,
-                    response: formatter.error()
+                    response: formatter.error(),
                 }));
             }, 2000);
 
-            lol.getChampionsNames().then(names => {
+            lol.getChampionsNames().then((names) => {
                 if (done) return;
 
-                const champName = request.nlu.tokens.find((e: string) => names.map(e => e.toLowerCase()).includes(e));
+                const champName = request.nlu.tokens.find((e: string) => names.map((e) => e.toLowerCase()).includes(e));
                 if (!champName) {
                     done = true;
                     return res.end(JSON.stringify({
                         version,
                         session,
-                        response: formatter.notFound()
+                        response: formatter.notFound(),
                     }));
                 }
 
@@ -91,24 +91,21 @@ Promise.all<LeagueOfLegendsBuildParser>([
                         if (done) return;
                         done = true;
 
-                        if (/руны|сборка/g.test(command))
-                            flags[Flags.runes] = true;
+                        if (/руны|сборка/g.test(command)) flags[Flags.runes] = true;
 
-                        if (/предметы?|вещи|сборка/g.test(command))
-                            flags[Flags.items] = true;
+                        if (/предметы?|вещи|сборка/g.test(command)) flags[Flags.items] = true;
 
                         if (/прокачка|скиллы|заклинания|сборка/.test(command)) {
                             flags[Flags.spells] = true;
                             flags[Flags.skillOrder] = true;
                         }
 
-                        if (/лини(я|и)|роли/g.test(command))
-                            flags[Flags.roles] = true;
+                        if (/лини(я|и)|роли/g.test(command)) flags[Flags.roles] = true;
 
                         res.end(JSON.stringify({
                             version,
                             session,
-                            response: formatter.format(champ, flags)
+                            response: formatter.format(champ, flags),
                         }));
                     });
             });
