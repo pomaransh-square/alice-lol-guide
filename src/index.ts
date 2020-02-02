@@ -3,6 +3,7 @@ import express from 'express';
 import { LeagueOfLegendsBuildParser } from './LeagueOfLegendsBuildParser';
 import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseFormatter';
 import { Flags } from './typings';
+import { findMoreMatchesResult } from "./helpers";
 
 const ruFormatter = new LeagueOfLegendsResponseFormatter('ru');
 // const enFormatter = new LeagueOfLegendsResponseFormatter('en');
@@ -20,7 +21,9 @@ Promise.all<LeagueOfLegendsBuildParser>([
     //         resolve(enLol);
     //     });
     // }),
-]).then(([ruLol]) => {
+]).then(async ([ruLol]) => {
+    const ruNames = await ruLol.getChampionsNames();
+
     const app = express();
     app
         .use(express.json())
@@ -73,42 +76,49 @@ Promise.all<LeagueOfLegendsBuildParser>([
                 }));
             }, 2000);
 
-            lol.getChampionsNames().then((names) => {
-                if (done) return;
+            if (done) return;
 
-                const champName = request.nlu.tokens.find((e: string) => names.map((e) => e.toLowerCase()).includes(e));
-                if (!champName) {
+            const sortedSearch = ruNames
+                .map((name: string) => findMoreMatchesResult(command, name))
+                .filter(e => e.weight > -1)
+                .sort((a, b) => a.weight - b.weight);
+
+            console.log(sortedSearch);
+
+            const found = sortedSearch[0];
+
+            const champName = found && found.name;
+            if (!champName) {
+                done = true;
+                return res.end(JSON.stringify({
+                    version,
+                    session,
+                    response: formatter.notFound(),
+                }));
+            }
+
+            lol.getChampion(champName)
+                .then((champ: any) => {
+                    if (done) return;
                     done = true;
-                    return res.end(JSON.stringify({
+
+                    if (/руны|сборка/g.test(command)) flags[Flags.runes] = true;
+
+                    if (/предметы?|вещи|сборка/g.test(command)) flags[Flags.items] = true;
+
+                    if (/прокачка|скиллы|заклинания|сборка/.test(command)) {
+                        flags[Flags.spells] = true;
+                        flags[Flags.skillOrder] = true;
+                    }
+
+                    if (/лини(я|и)|роли/g.test(command)) flags[Flags.roles] = true;
+
+                    res.end(JSON.stringify({
                         version,
                         session,
-                        response: formatter.notFound(),
+                        response: formatter.format(champ, flags),
                     }));
-                }
-
-                lol.getChampion(champName)
-                    .then((champ: any) => {
-                        if (done) return;
-                        done = true;
-
-                        if (/руны|сборка/g.test(command)) flags[Flags.runes] = true;
-
-                        if (/предметы?|вещи|сборка/g.test(command)) flags[Flags.items] = true;
-
-                        if (/прокачка|скиллы|заклинания|сборка/.test(command)) {
-                            flags[Flags.spells] = true;
-                            flags[Flags.skillOrder] = true;
-                        }
-
-                        if (/лини(я|и)|роли/g.test(command)) flags[Flags.roles] = true;
-
-                        res.end(JSON.stringify({
-                            version,
-                            session,
-                            response: formatter.format(champ, flags),
-                        }));
-                    });
-            });
+                });
         });
 
     const port = process.env.PORT || 3000;

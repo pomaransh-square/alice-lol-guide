@@ -44,9 +44,7 @@ export class LeagueOfLegendsResponseFormatter {
         if (Object.values(flags).every((e) => !e)) { (Object.keys(flags) as Flags[]).forEach((flag) => flags[flag] = true); }
 
         return reply`
-            ${flags[Flags.name] && reply`
-                Чемпион: ${toCapital(champ.name)} ${br()}
-            `}
+            Чемпион: ${toCapital(champ.name)} ${br()}
             ${flags[Flags.roles] && reply`Роли: ${LeagueOfLegendsResponseFormatter.formatSomeNames(champ.roles)} ${br()}`}
             ${flags[Flags.runes] && reply`
                 Основные руны: ${champ.primaryRunes.join(', ')} ${br()} ${br()}
