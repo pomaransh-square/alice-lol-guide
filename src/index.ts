@@ -78,14 +78,14 @@ Promise.all<LeagueOfLegendsBuildParser>([
 
             if (done) return;
 
-            const sortedSearch = ruNames
-                .map((name: string) => findMoreMatchesResult(command, name))
-                .filter(e => e.weight > -1)
-                .sort((a, b) => a.weight - b.weight);
+            // const sortedSearch = ruNames
+            //     .map((name: string) => findMoreMatchesResult(command, name))
+            //     .filter(e => e.weight > -1)
+            //     .sort((a, b) => a.weight - b.weight);
+            //
+            // const found = sortedSearch[0];
 
-            const found = sortedSearch[0];
-
-            const champName = found && found.name;
+            const champName = request.nlu.tokens.find((e: string) => ruNames.map((e) => e.toLowerCase()).includes(e));
             if (!champName) {
                 done = true;
                 return res.end(JSON.stringify({
