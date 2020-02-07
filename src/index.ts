@@ -22,7 +22,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
     //     });
     // }),
 ]).then(async ([ruLol]) => {
-    const ruNames = await ruLol.getChampionsNames();
+    const ruNames = await ruLol.getChampionsNames().then(names => names.map(name => name.toLowerCase()));
 
     const app = express();
     app
@@ -82,7 +82,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
             //
             // const found = sortedSearch[0];
 
-            const champName = request.nlu.tokens.find((e: string) => ruNames.map((e) => e.toLowerCase()).includes(e));
+            const champName = ruNames.find(name => new RegExp(name, 'i').test(command));
             if (!champName) {
                 done = true;
                 return res.end(JSON.stringify({
