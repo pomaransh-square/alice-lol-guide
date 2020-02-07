@@ -3,7 +3,6 @@ import express from 'express';
 import { LeagueOfLegendsBuildParser } from './LeagueOfLegendsBuildParser';
 import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseFormatter';
 import { Flags } from './typings';
-import { findMoreMatchesResult } from "./helpers";
 
 const ruFormatter = new LeagueOfLegendsResponseFormatter('ru');
 // const enFormatter = new LeagueOfLegendsResponseFormatter('en');
@@ -27,6 +26,9 @@ Promise.all<LeagueOfLegendsBuildParser>([
     const app = express();
     app
         .use(express.json())
+        .get('/ping', async (req, res) => {
+            res.end('pong');
+        })
         .all('/', async (req, res) => {
             if (req.method === 'GET') return res.end('<h1>Not found 404</h1>');
 

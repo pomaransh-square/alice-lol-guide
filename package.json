@@ -10,8 +10,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "ping-host": "node ./scripts/autoping.js",
     "build": "tsc",
-    "start": "npm run build && node build/index.js",
+    "start:alice": "npm run build && node build/index.js",
+    "start": "npm-run-all -p start:alice ping-host",
     "lint": "eslint --fix ./src/**/*.ts",
     "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts"
   },
@@ -41,6 +43,7 @@
     "micro": "^9.3.4",
     "nodemon": "^2.0.2",
     "osmosis": "^1.1.10",
+    "request": "^2.88.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
     "yandex-dialogs-sdk": "^2.3.0"
