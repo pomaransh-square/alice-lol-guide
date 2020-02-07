@@ -1,7 +1,7 @@
 const request = require('request');
 const path = require('path');
 
-const pingHost = process.env.HOST;
+const pingHost = process.env.HOST || 'https://alice-lol-guide.herokuapp.com/';
 
 if (!pingHost) {
     console.log('env HOST not found');
