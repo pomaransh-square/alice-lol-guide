@@ -90,5 +90,5 @@ Promise.all<LeagueOfLegendsBuildParser>([
         });
 
     const port = process.env.PORT || 3000;
-    app.listen(port, console.log.bind(null, `Server have been start on ${port}`));
+    app.listen(port, console.log.bind(null, `Server have been started on ${port}`));
 });
