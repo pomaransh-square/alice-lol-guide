@@ -2,9 +2,9 @@ import express from 'express';
 
 import { LeagueOfLegendsBuildParser } from './LeagueOfLegendsBuildParser';
 import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseFormatter';
-import { Flags } from './typings';
+import {Champion, Flags} from './typings';
+import { timeoutResponse } from "./helpers";
 
-const ruFormatter = new LeagueOfLegendsResponseFormatter('ru');
 // const enFormatter = new LeagueOfLegendsResponseFormatter('en');
 
 Promise.all<LeagueOfLegendsBuildParser>([
@@ -21,7 +21,8 @@ Promise.all<LeagueOfLegendsBuildParser>([
     //     });
     // }),
 ]).then(async ([ruLol]) => {
-    const ruNames = await ruLol.getChampionsNames().then(names => names.map(name => name.toLowerCase()));
+    const ruNames = await ruLol.getChampionsNames();
+    const ruFormatter = new LeagueOfLegendsResponseFormatter('ru', ruNames);
 
     const app = express();
     app
@@ -37,85 +38,55 @@ Promise.all<LeagueOfLegendsBuildParser>([
             const formatter = ruFormatter;
             const lol = ruLol;
 
-            let done = false;
-            setTimeout(() => {
-                if (done) return;
-                done = true;
+            const response = await timeoutResponse(async () => {
+                if (!request.command)
+                    return formatter.hello();
 
-                res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.error(),
-                }));
-            }, 2000);
+                const flags = LeagueOfLegendsResponseFormatter.getFormatterFlags();
 
-            if (!request.command) {
-                return res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.hello(),
-                }));
-            }
+                const command = request.command.toLowerCase();
 
-            const flags = LeagueOfLegendsResponseFormatter.getFormatterFlags();
+                if (/хватит|стоп|остановись|перестань/.test(command))
+                    return formatter.end();
 
-            const command = request.command.toLowerCase();
+                if (/помоги|помощь|что делать|варианты|что ты умеешь|умеешь/.test(command))
+                    return formatter.help();
 
-            if (/хватит|стоп|остановись/.test(command)) {
-                return res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.end(),
-                }));
-            }
+                if (/секрет/.test(command))
+                    return formatter.secret();
 
-            if (/помоги|помощь|что делать|варианты/.test(command)) {
-                return res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.help(),
-                }));
-            }
+                // const sortedSearch = ruNames
+                //     .map((name: string) => findMoreMatchesResult(command, name))
+                //     .filter(e => e.weight > -1)
+                //     .sort((a, b) => a.weight - b.weight);
+                //
+                // const found = sortedSearch[0];
 
-            // const sortedSearch = ruNames
-            //     .map((name: string) => findMoreMatchesResult(command, name))
-            //     .filter(e => e.weight > -1)
-            //     .sort((a, b) => a.weight - b.weight);
-            //
-            // const found = sortedSearch[0];
+                const champName = ruNames.find(name => new RegExp(name, 'i').test(command));
+                if (!champName)
+                    return formatter.notFound();
 
-            const champName = ruNames.find(name => new RegExp(name, 'i').test(command));
-            if (!champName) {
-                done = true;
-                return res.end(JSON.stringify({
-                    version,
-                    session,
-                    response: formatter.notFound(),
-                }));
-            }
+                const champ: Champion = await lol.getChampion(champName);
 
-            lol.getChampion(champName)
-                .then((champ: any) => {
-                    if (done) return;
-                    done = true;
+                if (/руны|сборка/.test(command)) flags[Flags.runes] = true;
 
-                    if (/руны|сборка/g.test(command)) flags[Flags.runes] = true;
+                if (/предметы?|вещи|сборка/.test(command)) flags[Flags.items] = true;
 
-                    if (/предметы?|вещи|сборка/g.test(command)) flags[Flags.items] = true;
+                if (/прокачка|скиллы|заклинания|сборка|умения/.test(command)) {
+                    flags[Flags.spells] = true;
+                    flags[Flags.skillOrder] = true;
+                }
 
-                    if (/прокачка|скиллы|заклинания|сборка/.test(command)) {
-                        flags[Flags.spells] = true;
-                        flags[Flags.skillOrder] = true;
-                    }
+                if (/лини(я|и)|роли/.test(command)) flags[Flags.roles] = true;
 
-                    if (/лини(я|и)|роли/g.test(command)) flags[Flags.roles] = true;
+                return formatter.format(champ, flags);
+            }, formatter.error);
 
-                    res.end(JSON.stringify({
-                        version,
-                        session,
-                        response: formatter.format(champ, flags),
-                    }));
-                });
+            res.end(JSON.stringify({
+                version,
+                session,
+                response
+            }))
         });
 
     const port = process.env.PORT || 3000;

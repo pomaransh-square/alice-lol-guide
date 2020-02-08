@@ -1,5 +1,19 @@
 export const toCapital = (str: string) => str[0].toUpperCase() + str.slice(1);
 
+export const random = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min));
+};
+
+export const getRandomItem = <T>(items: T[]) => items[random(0, items.length)];
+
+type TimeoutFunc = () => Promise<any> | any;
+export const timeoutResponse = (func: TimeoutFunc, catchFunc: TimeoutFunc, timeout: number = 2000) => {
+    return new Promise(async resolve => {
+        setTimeout(async () => resolve(await catchFunc()), timeout);
+        resolve(await func());
+    });
+};
+
 export const findMoreMatchesResult = (command: string, name: string) => {
     const maxSkipped = 3;
 
