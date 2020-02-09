@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import * as path from 'path';
 
 import { Cache } from './Cache';
-import { Champion, DataBaseType } from './typings';
+import { Champion, ChampionRef, ParserEvent } from './typings';
 
 export const CHAMPIONS_DATA_KEY = 'champ-data';
 export const NAMES_DATA_KEY = 'names-data';
@@ -19,8 +19,8 @@ export class LeagueOfLegendsBuildParser {
 
     private listeners: Record<string, () => void> = {};
 
-    constructor(initialData: DataBaseType = {}, private lang: 'ru' | 'en' = 'ru') {
-        this.cache = new Cache({ [NAMES_DATA_KEY]: [], ...initialData });
+    constructor(private lang: "ru" | "en" = 'ru') {
+        this.cache = new Cache({ [NAMES_DATA_KEY]: [] });
         this.init();
     }
 
@@ -28,11 +28,11 @@ export class LeagueOfLegendsBuildParser {
         const { listeners } = this;
 
         if (listeners.init) listeners.init();
-        this.fetchChampNames()
-            .then(async (names: string[]) => {
-                if (listeners.namesLoaded) listeners.namesLoaded();
-                for (const name of names) await this.fetchChamp(name);
-                if (listeners.champsLoaded) listeners.champsLoaded();
+        this.fetchChampionsRefs()
+            .then(async (refs: ChampionRef[]) => {
+                if (listeners[ParserEvent.namesLoaded]) listeners[ParserEvent.namesLoaded]();
+                for (const { name } of refs) await this.fetchChamp(name);
+                if (listeners[ParserEvent.champsLoaded]) listeners[ParserEvent.champsLoaded]();
             });
     };
 
@@ -43,69 +43,65 @@ export class LeagueOfLegendsBuildParser {
 
     private createChampionCacheName = (champ: string) => `${this.CHAMPIONS_DATA_KEY}_${champ}`;
 
-    fetchChampNames = async (): Promise<string[]> => {
-        const namesFromApi = await new Promise<string[]>((resolve) => {
+    fetchChampionsRefs = async (): Promise<ChampionRef[]> => {
+        const namesFromApi = await new Promise<ChampionRef[]>((resolve) => {
             needle.get(this.createRootUrl(), (err: any, res: any) => {
                 const $ = cheerio.load(res.body);
 
                 resolve(
                     $('#championListBox .championBox .championName').map(function(this: Cheerio) {
-                        return $(this).text().trim();
+                        return {
+                            name: $(this).text().trim().toLowerCase(),
+                            href: $(this).parent().attr('href')
+                        };
                     }).get()
                 );
             });
         });
 
-        const names = namesFromApi.map((e) => e.toLowerCase());
-        this.cache.set(this.NAMES_DATA_KEY, names);
-        return names;
+        console.log(namesFromApi);
+
+        this.cache.set(this.NAMES_DATA_KEY, namesFromApi);
+        return namesFromApi;
     };
 
     fetchChamp = async (champ: string): Promise<Champion> => {
+        const href = await this.getChampionsRefs().then(refs => (refs.find(e => e.name === champ) as ChampionRef).href);
+
         const champDataFromApi = await new Promise<Champion>((resolve) => {
-            needle.get(this.createRootUrl(), (err, res) => {
-                const $ = cheerio.load(res.body);
+            needle.get(this.createRootUrl(true) + href, (err, res) => {
+                const root = cheerio.load(res.body);
+                const $ = cheerio.load(root('#mainContent .row')[0]);
 
-                const href: string = $('#championListBox .championBox a')
-                    .filter(function(this: Cheerio) {
-                        return $(this).text().trim().toLowerCase().includes(champ);
-                    }).map(function(this: Cheerio) {
-                        return $(this).attr('href') as string;
-                    }).get(0);
-
-                needle.get(this.createRootUrl(true) + href, (err, res) => {
-                    const $ = cheerio.load(res.body);
-
-                    resolve({
-                        name: champ,
-                        spellsOrder: $('.iconsRow .championSpell > .championSpellLetter').map(function (this: Cheerio) {
-                            return $(this).contents().text().trim();
-                        }).get() as string[],
-                        summoners: $('a[href*="/spells/"] img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                        roles: $('.rolesEntries a .roleEntry .txt').map(function (this: Cheerio) {
-                            return $(this).contents().text().trim();
-                        }).get() as string[],
-                        primaryRunes: $('a[href*="/runes/"] .medium-12:first-child .perksTableOverview .img-align-block > div[style=""] img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                        secondaryRunes: $('a[href*="/runes/"] .medium-12:nth-child(2) .perksTableOverview .img-align-block > div[style=""] img').map(function (this: Cheerio) {
-                            return $(this).attr('alt')
-                        }).get() as string[],
-                        startItems: $('a[href*="items"] .overviewBox .row:nth-child(1) div:nth-child(1) img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                        mainItems: $('a[href*="items"] .overviewBox .row:nth-child(1) div:nth-child(2) img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                        lateItems: $('a[href*="items"] .overviewBox .row:nth-child(2) div:nth-child(2) img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                        boots: $('a[href*="items"] .overviewBox .row:nth-child(2) div:nth-child(1) img').map(function (this: Cheerio) {
-                            return $(this).attr('alt');
-                        }).get() as string[],
-                    });
+                resolve({
+                    name: champ,
+                    spellsOrder: $('.iconsRow .championSpell > .championSpellLetter').map(function (this: Cheerio) {
+                        return $(this).contents().text().trim();
+                    }).get() as string[],
+                    summoners: $('a[href*="/spells/"] img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
+                    roles: $('.rolesEntries a .roleEntry .txt').map(function (this: Cheerio) {
+                        return $(this).contents().text().trim();
+                    }).get() as string[],
+                    primaryRunes: $('a[href*="/runes/"] .medium-12:first-child .perksTableOverview .img-align-block > div[style=""] img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
+                    secondaryRunes: $('a[href*="/runes/"] .medium-12:nth-child(2) .perksTableOverview .img-align-block > div[style=""] img').map(function (this: Cheerio) {
+                        return $(this).attr('alt')
+                    }).get() as string[],
+                    startItems: $('a[href*="items"] .overviewBox .row:nth-child(1) div:nth-child(1) img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
+                    mainItems: $('a[href*="items"] .overviewBox .row:nth-child(1) div:nth-child(2) img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
+                    lateItems: $('a[href*="items"] .overviewBox .row:nth-child(2) div:nth-child(2) img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
+                    boots: $('a[href*="items"] .overviewBox .row:nth-child(2) div:nth-child(1) img').map(function (this: Cheerio) {
+                        return $(this).attr('alt');
+                    }).get() as string[],
                 });
             });
         });
@@ -116,19 +112,21 @@ export class LeagueOfLegendsBuildParser {
         return champDataFromApi;
     };
 
-    on = (event: string, cb: () => void) => {
+    on = (event: ParserEvent, cb: () => void) => {
         this.listeners[event] = cb;
     };
 
-    getChampionsNames = async (): Promise<string[]> => {
+    getChampionsRefs = async (): Promise<ChampionRef[]> => {
         const names = this.cache.get(this.NAMES_DATA_KEY);
-        if (!names || names._mustDie) return await this.fetchChampNames();
+        if (!names || !names.length) return await this.fetchChampionsRefs();
+        if (names._mustDie) this.fetchChampionsRefs();
         return names;
     };
 
     getChampion = async (champ: string): Promise<Champion> => {
         const champData = this.cache.get(this.createChampionCacheName(champ));
-        if (!champData || champData._mustDie) return await this.fetchChamp(champ);
+        if (!champData) return await this.fetchChamp(champ);
+        if (champData._mustDie) this.fetchChamp(champ);
         return champData;
     }
 }

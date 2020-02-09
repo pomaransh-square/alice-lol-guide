@@ -11,6 +11,17 @@ export interface Champion {
     boots: string[];
 }
 
+export interface ChampionRef {
+    name: string;
+    href: string;
+}
+
+export enum ParserEvent {
+    init = 'init',
+    champsLoaded = 'champsLoaded',
+    namesLoaded = 'namesLoaded'
+}
+
 export type DataBaseType = any;
 
 export enum Flags {

@@ -2,15 +2,15 @@ import express from 'express';
 
 import { LeagueOfLegendsBuildParser } from './LeagueOfLegendsBuildParser';
 import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseFormatter';
-import {Champion, Flags} from './typings';
+import {Champion, Flags, ParserEvent} from './typings';
 import { timeoutResponse } from "./helpers";
 
 // const enFormatter = new LeagueOfLegendsResponseFormatter('en');
 
 Promise.all<LeagueOfLegendsBuildParser>([
     new Promise((resolve) => {
-        const ruLol = new LeagueOfLegendsBuildParser(undefined, 'ru');
-        ruLol.on('namesLoaded', () => {
+        const ruLol = new LeagueOfLegendsBuildParser('ru');
+        ruLol.on(ParserEvent.namesLoaded, () => {
             resolve(ruLol);
         });
     }),
@@ -21,7 +21,7 @@ Promise.all<LeagueOfLegendsBuildParser>([
     //     });
     // }),
 ]).then(async ([ruLol]) => {
-    const ruNames = await ruLol.getChampionsNames();
+    const ruNames = await ruLol.getChampionsRefs().then(ref => ref.map(e => e.name));
     const ruFormatter = new LeagueOfLegendsResponseFormatter('ru', ruNames);
 
     const app = express();
