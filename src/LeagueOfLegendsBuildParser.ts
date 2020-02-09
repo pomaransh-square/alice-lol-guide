@@ -59,8 +59,6 @@ export class LeagueOfLegendsBuildParser {
             });
         });
 
-        console.log(namesFromApi);
-
         this.cache.set(this.NAMES_DATA_KEY, namesFromApi);
         return namesFromApi;
     };
@@ -105,8 +103,6 @@ export class LeagueOfLegendsBuildParser {
                 });
             });
         });
-
-        console.log(champDataFromApi);
 
         this.cache.set(this.createChampionCacheName(champ), champDataFromApi, 1000 * 60 * 60 * 24);
         return champDataFromApi;
