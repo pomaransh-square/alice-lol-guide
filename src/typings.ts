@@ -9,7 +9,17 @@ export interface Champion {
     mainItems: string[];
     lateItems: string[];
     boots: string[];
-    situation: string[];
+}
+
+export interface ChampionRef {
+    name: string;
+    href: string;
+}
+
+export enum ParserEvent {
+    init = 'init',
+    champsLoaded = 'champsLoaded',
+    namesLoaded = 'namesLoaded'
 }
 
 export type DataBaseType = any;

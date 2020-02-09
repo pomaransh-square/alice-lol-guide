@@ -1,19 +1,16 @@
 {
-  "name": "lol",
+  "name": "alice-lol-guide-skill",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
-  },
+  "description": "Alice Skill",
+  "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "npm run build && node build/index.js",
-    "lint": "eslint --fix ./src/**/*.ts",
-    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts"
+    "dev": "nodemon --watch '**/*.ts' --exec 'ts-node' src/index.ts",
+    "publish": "npm run build && npm run archive && npm run deploy",
+    "deploy": "scripts/deploy.sh",
+    "archive": "scripts/archive.sh"
   },
   "repository": {
     "type": "git",
@@ -27,24 +24,24 @@
   },
   "homepage": "https://github.com/pomaransh-square/alice-lol-guide#readme",
   "dependencies": {
+    "alice-renderer": "^0.8.0",
+    "cheerio": "^1.0.0-rc.3",
+    "needle": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.16",
     "@types/express": "^4.17.2",
+    "@types/needle": "^2.0.4",
     "@types/node": "^13.7.0",
     "@types/osmosis": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "alice-renderer": "^0.8.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.0",
     "express": "^4.17.1",
-    "husky": "^4.2.1",
-    "micro": "^9.3.4",
     "nodemon": "^2.0.2",
-    "osmosis": "^1.1.10",
-    "request": "^2.88.0",
     "ts-node": "^8.6.2",
-    "typescript": "^3.7.5",
-    "yandex-dialogs-sdk": "^2.3.0"
-  },
-  "devDependencies": {}
+    "typescript": "^3.7.5"
+  }
 }
