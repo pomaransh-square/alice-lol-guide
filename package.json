@@ -1,7 +1,7 @@
 {
-  "name": "lol",
+  "name": "alice-lol-guide-skill",
   "version": "1.0.0",
-  "description": "",
+  "description": "Alice Skill",
   "main": "src/index.ts",
   "husky": {
     "hooks": {
@@ -13,7 +13,12 @@
     "build": "tsc",
     "start": "npm run build && node build/index.js",
     "lint": "eslint --fix ./src/**/*.ts",
-    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts"
+    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts",
+    "publish": "npm run build && npm run archive && npm run yc-function-deploy",
+    "archive": "rm -f package.zip && rm -rf node_modules && npm install --production && zip -r package.zip node_modules && cd build && zip -r ../package.zip * && rm -rf node_modules && npm ci",
+    "yc-function-create": "yc serverless function create --name $npm_package_name --description \"$npm_package_description\"",
+    "yc-function-make-public": "yc serverless function set-access-bindings --name=$npm_package_name --access-binding role=serverless.functions.invoker,subject=system:allUsers",
+    "yc-function-deploy": "yc serverless function version create --function-name=$npm_package_name --runtime nodejs12 --entrypoint index.handler --memory 128m --execution-timeout 3s --source-path ./package.zip"
   },
   "repository": {
     "type": "git",
@@ -27,24 +32,24 @@
   },
   "homepage": "https://github.com/pomaransh-square/alice-lol-guide#readme",
   "dependencies": {
+    "alice-renderer": "^0.8.0",
+    "cheerio": "^1.0.0-rc.3",
+    "needle": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.16",
     "@types/express": "^4.17.2",
+    "@types/needle": "^2.0.4",
     "@types/node": "^13.7.0",
     "@types/osmosis": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "alice-renderer": "^0.8.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.0",
     "express": "^4.17.1",
-    "husky": "^4.2.1",
-    "micro": "^9.3.4",
     "nodemon": "^2.0.2",
-    "osmosis": "^1.1.10",
-    "request": "^2.88.0",
     "ts-node": "^8.6.2",
-    "typescript": "^3.7.5",
-    "yandex-dialogs-sdk": "^2.3.0"
-  },
-  "devDependencies": {}
+    "typescript": "^3.7.5"
+  }
 }

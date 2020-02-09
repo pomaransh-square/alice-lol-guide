@@ -9,7 +9,6 @@ export interface Champion {
     mainItems: string[];
     lateItems: string[];
     boots: string[];
-    situation: string[];
 }
 
 export type DataBaseType = any;
