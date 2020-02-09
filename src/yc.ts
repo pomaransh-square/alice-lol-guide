@@ -3,11 +3,9 @@ import { LeagueOfLegendsResponseFormatter } from './LeagueOfLegendsResponseForma
 import { Champion, Flags } from './typings';
 import { timeoutResponse } from "./helpers";
 
-// const enFormatter = new LeagueOfLegendsResponseFormatter('en');
-
 const lol = new LeagueOfLegendsBuildParser('ru');
 
-module.exports.handle = async (event: any, context: any) => {
+export const handle = async (event: any, context?: any) => {
     const { version, session, request } = event;
 
     const ruNames = await lol.getChampionsRefs().then(ref => ref.map(e => e.name));

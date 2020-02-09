@@ -16,7 +16,7 @@
     "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' src/index.ts",
     "publish": "npm run build && npm run archive && npm run deploy",
     "archive": "rm -f package.zip && rm -rf node_modules && npm install --production && zip -r package.zip node_modules && cd build && zip -r ../package.zip * && rm -rf node_modules && npm ci",
-    "deploy": "yc serverless function version create --function-name=$npm_package_name --runtime nodejs12 --entrypoint yc.handle --memory 128m --execution-timeout 3s --source-path ./package.zip",
+    "deploy": "yc serverless function version create --function-name=$npm_package_name --runtime nodejs12 --entrypoint yc.handle --memory 128m --execution-timeout 3s --source-path ./package.zip"
   },
   "repository": {
     "type": "git",
