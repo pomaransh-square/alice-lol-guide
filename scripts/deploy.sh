@@ -1,4 +1,6 @@
-while read line; do export "$line";
+# Install .env to variables
+while read line;
+  do export "$line";
 done <.env
 
 yc serverless function version create \
