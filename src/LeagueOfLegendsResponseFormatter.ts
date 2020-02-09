@@ -4,7 +4,7 @@ import { Champion, Flags } from './typings';
 import { toCapital, getRandomItem } from './helpers';
 
 export const secretHelp: string[] = (() => {
-    const array = new Array(30).fill('');
+    const array = new Array(50).fill('');
     array[8] = 'В этом навыке есть пасхалка, которую вам предстоит найти самостоятельно';
 
     return array;
