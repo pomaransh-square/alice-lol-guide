@@ -7,7 +7,8 @@ npm install --production;
 
 # Zipping new version
 zip -r package.zip node_modules;
-zip -r ../package.zip ./build/*;
+# Zipping without build folder
+cd build && zip -r ../package.zip * && cd ..;
 
 # Update deps (for continious development)
 rm -rf node_modules && \
